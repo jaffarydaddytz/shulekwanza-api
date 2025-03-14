@@ -1,1 +1,34 @@
 
+name: Test SSH Connection and Upload File
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-ssh-connection:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Test SSH Connection and Upload File
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          USER: ${{ secrets.VPS_USER }}
+          KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          # Create a simple file
+          echo "This is a test file created by GitHub Actions." > test_file.txt
+          
+          # Save the SSH key to a file
+          echo "$KEY" > private_key
+          chmod 600 private_key
+          
+          # Test SSH connection
+          ssh -i private_key -o StrictHostKeyChecking=no $USER@$HOST 'echo "SSH connection successful!"'
+          
+          # Upload the file to the VPS
+          scp -i private_key -o StrictHostKeyChecking=no test_file.txt $USER@$HOST:/var/www/api.shulekwanza.co.tz/test_file.txt 
